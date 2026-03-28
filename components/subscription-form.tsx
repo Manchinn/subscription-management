@@ -1,5 +1,6 @@
 'use client'
 import { useForm } from 'react-hook-form'
+import type { Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { subscriptionSchema, createSubscription, updateSubscription, deleteSubscription } from '@/lib/actions/subscription.actions'
@@ -32,7 +33,7 @@ export function SubscriptionForm({
   const [pending, startTransition] = useTransition()
 
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<FormData>({
-    resolver: zodResolver(subscriptionSchema),
+    resolver: zodResolver(subscriptionSchema) as Resolver<FormData>,
     defaultValues: {
       currency: defaultCurrency,
       billingCycle: BillingCycle.MONTHLY,
@@ -88,7 +89,7 @@ export function SubscriptionForm({
         <Label>Billing Cycle *</Label>
         <Select
           defaultValue={watch('billingCycle')}
-          onValueChange={(v) => setValue('billingCycle', v as BillingCycle)}
+          onValueChange={(v) => { if (v) setValue('billingCycle', v as BillingCycle) }}
         >
           <SelectTrigger>
             <SelectValue />
@@ -115,7 +116,7 @@ export function SubscriptionForm({
         <Label>Category</Label>
         <Select
           defaultValue={watch('categoryId')}
-          onValueChange={(v) => setValue('categoryId', v)}
+          onValueChange={(v) => { if (v) setValue('categoryId', v) }}
         >
           <SelectTrigger>
             <SelectValue />
@@ -151,7 +152,7 @@ export function SubscriptionForm({
           <Label>Status</Label>
           <Select
             defaultValue={watch('status')}
-            onValueChange={(v) => setValue('status', v as Status)}
+            onValueChange={(v) => { if (v) setValue('status', v as Status) }}
           >
             <SelectTrigger>
               <SelectValue />
