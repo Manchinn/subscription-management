@@ -4,6 +4,7 @@ import { PrismaAdapter } from '@auth/prisma-adapter'
 import { prisma } from '@/lib/db'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
+import { authConfig } from '@/auth.config'
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -11,9 +12,8 @@ const loginSchema = z.object({
 })
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  ...authConfig,
   adapter: PrismaAdapter(prisma),
-  // JWT strategy required: Credentials provider doesn't support database sessions
-  session: { strategy: 'jwt' },
   providers: [
     Credentials({
       async authorize(credentials) {
@@ -32,17 +32,4 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
     }),
   ],
-  callbacks: {
-    jwt({ token, user }) {
-      if (user) token.id = user.id
-      return token
-    },
-    session({ session, token }) {
-      if (typeof token.id === 'string') session.user.id = token.id
-      return session
-    },
-  },
-  pages: {
-    signIn: '/login',
-  },
 })
