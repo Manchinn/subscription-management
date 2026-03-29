@@ -14,6 +14,7 @@ import { BillingCycle, Status } from '@prisma/client'
 import type { Category } from '@prisma/client'
 import { format } from 'date-fns'
 import { useState, useTransition } from 'react'
+import { cn } from '@/lib/utils'
 
 type FormData = z.infer<typeof subscriptionSchema>
 
@@ -22,6 +23,18 @@ interface SubscriptionFormProps {
   defaultCategoryId: string
   defaultCurrency: string
   initialData?: Partial<FormData> & { id?: string }
+}
+
+const BILLING_OPTIONS: { value: BillingCycle; label: string; sub: string }[] = [
+  { value: BillingCycle.MONTHLY, label: 'Monthly', sub: '/mo' },
+  { value: BillingCycle.QUARTERLY, label: 'Quarterly', sub: '/3mo' },
+  { value: BillingCycle.YEARLY, label: 'Yearly', sub: '/yr' },
+]
+
+const STATUS_CONFIG: Record<Status, { label: string; color: string; bg: string; ring: string }> = {
+  ACTIVE: { label: 'Active', color: 'text-emerald-700', bg: 'bg-emerald-50', ring: 'ring-emerald-600' },
+  PAUSED: { label: 'Paused', color: 'text-amber-700', bg: 'bg-amber-50', ring: 'ring-amber-500' },
+  CANCELLED: { label: 'Cancelled', color: 'text-gray-500', bg: 'bg-gray-100', ring: 'ring-gray-400' },
 }
 
 export function SubscriptionForm({
@@ -54,8 +67,6 @@ export function SubscriptionForm({
       const result = isEdit && initialData?.id
         ? await updateSubscription(initialData.id, data)
         : await createSubscription(data)
-      // If redirect happened, this code won't run.
-      // If we get here, it means action returned an error.
       if (result && !result.success) {
         setActionError(result.error ?? 'Something went wrong')
       }
@@ -74,123 +85,220 @@ export function SubscriptionForm({
   }
 
   const nextBillingDate = watch('nextBillingDate')
+  const currentCycle = watch('billingCycle')
+  const currentStatus = watch('status')
+  const currentCategory = watch('categoryId')
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div className="space-y-1">
-        <Label htmlFor="name">Name *</Label>
-        <Input id="name" {...register('name')} placeholder="Netflix" />
-        {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
-      </div>
-
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1">
-          <Label htmlFor="cost">Cost *</Label>
-          <Input id="cost" type="number" step="0.01" {...register('cost')} placeholder="0.00" />
-          {errors.cost && <p className="text-xs text-destructive">{errors.cost.message}</p>}
-        </div>
-        <div className="space-y-1">
-          <Label>Currency</Label>
-          <Input {...register('currency')} placeholder="THB" />
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      {/* Section 1: Name — hero field */}
+      <div className="form-section" style={{ animationDelay: '0ms' }}>
+        <div className="rounded-2xl border bg-card p-4 shadow-sm">
+          <Label htmlFor="name" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Service Name
+          </Label>
+          <Input
+            id="name"
+            {...register('name')}
+            placeholder="e.g. Netflix, Spotify, iCloud+"
+            className="mt-2 border-0 bg-transparent px-0 text-lg font-semibold placeholder:text-muted-foreground/40 focus-visible:ring-0"
+          />
+          {errors.name && <p className="mt-1 text-xs text-destructive">{errors.name.message}</p>}
         </div>
       </div>
 
-      <div className="space-y-1">
-        <Label>Billing Cycle *</Label>
-        <Select
-          value={watch('billingCycle')}
-          onValueChange={(v) => { if (v) setValue('billingCycle', v as BillingCycle) }}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="MONTHLY">Monthly</SelectItem>
-            <SelectItem value="YEARLY">Yearly</SelectItem>
-            <SelectItem value="QUARTERLY">Quarterly</SelectItem>
-          </SelectContent>
-        </Select>
+      {/* Section 2: Cost + Currency — teal accent */}
+      <div className="form-section" style={{ animationDelay: '60ms' }}>
+        <div className="rounded-2xl border border-teal-200/60 bg-gradient-to-br from-teal-50 to-cyan-50/50 p-4 shadow-sm">
+          <Label className="text-xs font-semibold uppercase tracking-wider text-teal-700/70">
+            Amount
+          </Label>
+          <div className="mt-2 flex items-baseline gap-2">
+            <div className="relative flex-1">
+              <Input
+                id="cost"
+                type="number"
+                step="0.01"
+                {...register('cost')}
+                placeholder="0.00"
+                className="hide-arrows border-0 bg-white/60 px-3 text-2xl font-bold tabular-nums text-teal-900 placeholder:text-teal-300 focus-visible:ring-teal-400"
+              />
+            </div>
+            <div className="w-20">
+              <Input
+                {...register('currency')}
+                placeholder="THB"
+                maxLength={3}
+                className="border-0 bg-white/60 text-center text-sm font-semibold uppercase text-teal-700 placeholder:text-teal-300 focus-visible:ring-teal-400"
+              />
+            </div>
+          </div>
+          {errors.cost && <p className="mt-1 text-xs text-destructive">{errors.cost.message}</p>}
+        </div>
       </div>
 
-      <div className="space-y-1">
-        <Label htmlFor="nextBillingDate">Next Billing Date *</Label>
-        <Input
-          id="nextBillingDate"
-          type="date"
-          value={nextBillingDate ? format(new Date(nextBillingDate), 'yyyy-MM-dd') : ''}
-          onChange={(e) => setValue('nextBillingDate', new Date(e.target.value))}
-        />
-      </div>
-
-      <div className="space-y-1">
-        <Label>Category</Label>
-        <Select
-          value={watch('categoryId')}
-          onValueChange={(v) => { if (v) setValue('categoryId', v) }}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {categories.map((cat) => (
-              <SelectItem key={cat.id} value={cat.id}>
-                {cat.icon} {cat.name}
-              </SelectItem>
+      {/* Section 3: Billing cycle — segmented control */}
+      <div className="form-section" style={{ animationDelay: '120ms' }}>
+        <div className="rounded-2xl border bg-card p-4 shadow-sm">
+          <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Billing Cycle
+          </Label>
+          <div className="mt-3 grid grid-cols-3 gap-1.5 rounded-xl bg-muted p-1">
+            {BILLING_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setValue('billingCycle', opt.value)}
+                className={cn(
+                  'rounded-lg px-3 py-2.5 text-center transition-all duration-200',
+                  currentCycle === opt.value
+                    ? 'bg-white font-semibold text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                <span className="block text-sm">{opt.label}</span>
+                <span className="block text-[10px] text-muted-foreground">{opt.sub}</span>
+              </button>
             ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-1">
-        <Label htmlFor="paymentMethod">Payment Method</Label>
-        <Input id="paymentMethod" {...register('paymentMethod')} placeholder="Credit Card" />
-      </div>
-
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1">
-          <Label htmlFor="logoUrl">Logo URL</Label>
-          <Input id="logoUrl" {...register('logoUrl')} placeholder="https://..." />
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="logoEmoji">Emoji</Label>
-          <Input id="logoEmoji" {...register('logoEmoji')} placeholder="🎬" />
+          </div>
         </div>
       </div>
 
+      {/* Section 4: Next Billing Date */}
+      <div className="form-section" style={{ animationDelay: '180ms' }}>
+        <div className="rounded-2xl border bg-card p-4 shadow-sm">
+          <Label htmlFor="nextBillingDate" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Next Billing Date
+          </Label>
+          <Input
+            id="nextBillingDate"
+            type="date"
+            value={nextBillingDate ? format(new Date(nextBillingDate), 'yyyy-MM-dd') : ''}
+            onChange={(e) => setValue('nextBillingDate', new Date(e.target.value))}
+            className="mt-2 tabular-nums"
+          />
+        </div>
+      </div>
+
+      {/* Section 5: Category — emoji pills */}
+      <div className="form-section" style={{ animationDelay: '240ms' }}>
+        <div className="rounded-2xl border bg-card p-4 shadow-sm">
+          <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Category
+          </Label>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {categories.map((cat) => {
+              const isSelected = currentCategory === cat.id
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => setValue('categoryId', cat.id)}
+                  className={cn(
+                    'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm transition-all duration-200',
+                    isSelected
+                      ? 'font-semibold text-white shadow-sm ring-1 ring-inset ring-white/20'
+                      : 'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground'
+                  )}
+                  style={isSelected ? { backgroundColor: cat.color } : undefined}
+                >
+                  <span className="text-base">{cat.icon}</span>
+                  <span>{cat.name}</span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Section 6: Optional details — collapsible feel */}
+      <div className="form-section" style={{ animationDelay: '300ms' }}>
+        <div className="rounded-2xl border bg-card p-4 shadow-sm">
+          <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Details
+          </Label>
+          <div className="mt-3 space-y-3">
+            <div className="space-y-1">
+              <Label htmlFor="paymentMethod" className="text-xs text-muted-foreground">Payment Method</Label>
+              <Input id="paymentMethod" {...register('paymentMethod')} placeholder="Credit card, bank transfer..." className="text-sm" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label htmlFor="logoUrl" className="text-xs text-muted-foreground">Logo URL</Label>
+                <Input id="logoUrl" {...register('logoUrl')} placeholder="https://..." className="text-sm" />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="logoEmoji" className="text-xs text-muted-foreground">Emoji</Label>
+                <Input id="logoEmoji" {...register('logoEmoji')} placeholder="🎬" className="text-center text-sm" />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="notes" className="text-xs text-muted-foreground">Notes</Label>
+              <Textarea id="notes" {...register('notes')} rows={2} placeholder="Any additional notes..." className="text-sm" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Section 7: Status — edit mode only */}
       {isEdit && (
-        <div className="space-y-1">
-          <Label>Status</Label>
-          <Select
-            value={watch('status')}
-            onValueChange={(v) => { if (v) setValue('status', v as Status) }}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ACTIVE">Active</SelectItem>
-              <SelectItem value="PAUSED">Paused</SelectItem>
-              <SelectItem value="CANCELLED">Cancelled</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="form-section" style={{ animationDelay: '360ms' }}>
+          <div className="rounded-2xl border bg-card p-4 shadow-sm">
+            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Status
+            </Label>
+            <div className="mt-3 flex gap-2">
+              {(Object.entries(STATUS_CONFIG) as [Status, typeof STATUS_CONFIG[Status]][]).map(([value, config]) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setValue('status', value)}
+                  className={cn(
+                    'rounded-full px-4 py-2 text-sm font-medium transition-all duration-200',
+                    currentStatus === value
+                      ? `${config.bg} ${config.color} ring-2 ${config.ring}`
+                      : 'bg-muted text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  {config.label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
-      <div className="space-y-1">
-        <Label htmlFor="notes">Notes</Label>
-        <Textarea id="notes" {...register('notes')} rows={2} />
-      </div>
-
+      {/* Error display */}
       {actionError && (
-        <p className="text-sm text-destructive">{actionError}</p>
+        <div className="form-section rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+          <p className="text-sm font-medium text-red-700">{actionError}</p>
+        </div>
       )}
 
-      <div className="flex gap-2 pt-2">
-        <Button type="submit" className="flex-1" disabled={pending}>
-          {pending ? 'Saving…' : isEdit ? 'Save Changes' : 'Add Subscription'}
+      {/* Action buttons */}
+      <div className="form-section flex gap-3 pt-2" style={{ animationDelay: isEdit ? '420ms' : '360ms' }}>
+        <Button
+          type="submit"
+          className="flex-1 rounded-xl py-6 text-base font-semibold shadow-md transition-transform active:scale-[0.98]"
+          disabled={pending}
+        >
+          {pending ? (
+            <span className="flex items-center gap-2">
+              <svg className="spinner h-4 w-4" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeDasharray="32" strokeDashoffset="12" />
+              </svg>
+              Saving…
+            </span>
+          ) : isEdit ? 'Save Changes' : 'Add Subscription'}
         </Button>
         {isEdit && (
-          <Button type="button" variant="destructive" onClick={handleDelete} disabled={pending}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleDelete}
+            disabled={pending}
+            className="rounded-xl border-red-200 px-6 py-6 text-red-600 hover:bg-red-50 hover:text-red-700"
+          >
             Delete
           </Button>
         )}
