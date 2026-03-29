@@ -2,11 +2,11 @@ import type { Metadata } from 'next'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { redirect } from 'next/navigation'
+import { SettingsForm } from '@/components/settings-form'
 
 export const metadata: Metadata = {
   title: 'Settings | Subscription Tracker',
 }
-import { SettingsForm } from '@/components/settings-form'
 
 export default async function SettingsPage() {
   const session = await auth()

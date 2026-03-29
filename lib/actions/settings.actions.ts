@@ -9,13 +9,13 @@ import bcrypt from 'bcryptjs'
 import type { ActionResult } from './subscription.actions'
 
 const profileSchema = z.object({
-  name: z.string().min(1),
+  name: z.string().trim().min(1).max(100),
   defaultCurrency: z.string().min(3).max(3).toUpperCase(),
 })
 
 const passwordSchema = z.object({
-  currentPassword: z.string().min(6),
-  newPassword: z.string().min(6),
+  currentPassword: z.string().min(6).max(128),
+  newPassword: z.string().min(6).max(128),
 })
 
 export async function updateProfile(

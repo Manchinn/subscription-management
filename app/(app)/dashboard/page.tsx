@@ -3,10 +3,6 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { redirect } from 'next/navigation'
 import { Status } from '@prisma/client'
-
-export const metadata: Metadata = {
-  title: 'Dashboard | Subscription Tracker',
-}
 import {
   groupTotalsByCurrency,
   isAlertingSoon,
@@ -19,6 +15,10 @@ import { AlertStrip } from '@/components/alert-strip'
 import type { SubscriptionWithCategory } from '@/types'
 import Link from 'next/link'
 import { format } from 'date-fns'
+
+export const metadata: Metadata = {
+  title: 'Dashboard | Subscription Tracker',
+}
 
 export default async function DashboardPage() {
   const session = await auth()

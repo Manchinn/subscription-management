@@ -182,13 +182,15 @@ export function SubscriptionForm({
           <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Category
           </Label>
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div role="radiogroup" aria-label="Category" className="mt-3 flex flex-wrap gap-2">
             {categories.map((cat) => {
               const isSelected = currentCategory === cat.id
               return (
                 <button
                   key={cat.id}
                   type="button"
+                  role="radio"
+                  aria-checked={isSelected ? "true" : "false"}
                   onClick={() => setValue('categoryId', cat.id)}
                   className={cn(
                     'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm transition-all duration-200',

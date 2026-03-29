@@ -6,9 +6,9 @@ import { isRateLimited, recordFailedAttempt } from '@/lib/rate-limit'
 
 const registerSchema = z
   .object({
-    name: z.string().trim().min(1, 'Name is required'),
+    name: z.string().trim().min(1, 'Name is required').max(100),
     email: z.string().email('Invalid email address'),
-    password: z.string().min(6, 'Password must be at least 6 characters'),
+    password: z.string().min(6, 'Password must be at least 6 characters').max(128),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -42,7 +42,7 @@ export async function registerUser(data: {
     return { success: false, error: 'Validation failed', fieldErrors }
   }
 
-  const rateLimitKey = `register:${parsed.data.email.toLowerCase()}`
+  const rateLimitKey = `register:${parsed.data.email.trim().toLowerCase()}`
   const { blocked } = isRateLimited(rateLimitKey)
   if (blocked) {
     return { success: false, error: 'Too many attempts. Please try again later.' }

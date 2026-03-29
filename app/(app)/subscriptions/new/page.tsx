@@ -2,13 +2,13 @@ import type { Metadata } from 'next'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { redirect } from 'next/navigation'
+import { SubscriptionForm } from '@/components/subscription-form'
+import Link from 'next/link'
+import { ChevronLeft } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: 'New Subscription | Subscription Tracker',
 }
-import { SubscriptionForm } from '@/components/subscription-form'
-import Link from 'next/link'
-import { ChevronLeft } from 'lucide-react'
 
 export default async function NewSubscriptionPage() {
   const session = await auth()

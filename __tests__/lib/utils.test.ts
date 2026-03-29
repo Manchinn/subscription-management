@@ -44,6 +44,10 @@ describe('formatCurrency', () => {
     const result = formatCurrency(9.99, 'USD')
     expect(result).toContain('9.99')
   })
+  it('falls back gracefully for invalid currency code', () => {
+    const result = formatCurrency(100, 'INVALID')
+    expect(result).toBe('100.00 INVALID')
+  })
 })
 
 describe('daysUntil', () => {

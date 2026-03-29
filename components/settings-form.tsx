@@ -62,7 +62,7 @@ export function SettingsForm({ userName, defaultCurrency }: SettingsFormProps) {
           <form onSubmit={handleProfile} className="space-y-3">
             <div className="space-y-1">
               <Label htmlFor="name">Name</Label>
-              <Input id="name" name="name" value={name} onChange={(e) => setName(e.target.value)} className="text-base font-medium" />
+              <Input id="name" name="name" value={name} onChange={(e) => setName(e.target.value)} required maxLength={100} className="text-base font-medium" />
             </div>
             <div className="space-y-1">
               <Label htmlFor="defaultCurrency">Default Currency</Label>
@@ -72,6 +72,8 @@ export function SettingsForm({ userName, defaultCurrency }: SettingsFormProps) {
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value)}
                 placeholder="THB"
+                required
+                minLength={3}
                 maxLength={3}
                 className="text-center uppercase text-sm font-semibold"
               />

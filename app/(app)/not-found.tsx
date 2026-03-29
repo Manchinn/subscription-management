@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { buttonVariants } from '@/components/ui/button'
 
 export default function AppNotFound() {
   return (
@@ -8,10 +9,7 @@ export default function AppNotFound() {
       <p className="text-sm text-muted-foreground">
         The page you're looking for doesn't exist or has been removed.
       </p>
-      <Link
-        href="/dashboard"
-        className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90"
-      >
+      <Link href="/dashboard" className={buttonVariants({ className: 'rounded-xl' })}>
         Back to Dashboard
       </Link>
     </div>

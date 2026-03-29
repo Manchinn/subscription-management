@@ -10,17 +10,8 @@ interface Props {
   params: Promise<{ id: string }>
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { id } = await params
-  const subscription = await prisma.subscription.findUnique({
-    where: { id },
-    select: { name: true },
-  })
-  return {
-    title: subscription
-      ? `${subscription.name} | Subscription Tracker`
-      : 'Edit Subscription | Subscription Tracker',
-  }
+export const metadata: Metadata = {
+  title: 'Edit Subscription | Subscription Tracker',
 }
 
 export default async function EditSubscriptionPage({ params }: Props) {

@@ -4,7 +4,7 @@ import { BillingCycle, Status } from '@prisma/client'
 export const subscriptionSchema = z.object({
   name:            z.string().min(1, 'Name is required').max(100),
   description:     z.string().max(500).optional(),
-  cost:            z.coerce.number().positive('Cost must be positive'),
+  cost:            z.coerce.number().positive('Cost must be positive').max(99999999.99, 'Cost is too high'),
   currency:        z.string().min(3).max(3).toUpperCase().default('THB'),
   billingCycle:    z.nativeEnum(BillingCycle),
   nextBillingDate: z.coerce.date(),
