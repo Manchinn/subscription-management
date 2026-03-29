@@ -22,11 +22,15 @@ export function calculateYearlyCost(cost: Decimal, cycle: BillingCycle): number 
 }
 
 export function formatCurrency(amount: number, currency: string): string {
-  return new Intl.NumberFormat('th-TH', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-  }).format(amount)
+  try {
+    return new Intl.NumberFormat('th-TH', {
+      style: 'currency',
+      currency,
+      minimumFractionDigits: 2,
+    }).format(amount)
+  } catch {
+    return `${amount.toFixed(2)} ${currency}`
+  }
 }
 
 export function daysUntil(date: Date): number {

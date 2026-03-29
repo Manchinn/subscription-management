@@ -1,7 +1,12 @@
+import type { Metadata } from 'next'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { redirect } from 'next/navigation'
 import { Status } from '@prisma/client'
+
+export const metadata: Metadata = {
+  title: 'Dashboard | Subscription Tracker',
+}
 import {
   groupTotalsByCurrency,
   isAlertingSoon,
@@ -57,7 +62,7 @@ export default async function DashboardPage() {
           <p className="text-sm text-muted-foreground">No upcoming bills</p>
         ) : (
           <ul className="space-y-2">
-            {upcomingSubs.map((sub, index) => {
+            {upcomingSubs.map((sub) => {
               const days = daysUntil(new Date(sub.nextBillingDate))
               const isAlert = isAlertingSoon(new Date(sub.nextBillingDate))
               return (

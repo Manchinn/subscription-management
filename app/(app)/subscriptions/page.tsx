@@ -1,6 +1,11 @@
+import type { Metadata } from 'next'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { redirect } from 'next/navigation'
+
+export const metadata: Metadata = {
+  title: 'Subscriptions | Subscription Tracker',
+}
 import { Suspense } from 'react'
 import { SubscriptionCard } from '@/components/subscription-card'
 import { CategoryFilter } from '@/components/category-filter'

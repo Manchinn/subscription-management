@@ -22,7 +22,7 @@ export function CategoryFilter({ categories }: CategoryFilterProps) {
   const tabs = [{ id: 'system-all', slug: 'all', name: 'All', icon: '🔍' }, ...categories]
 
   return (
-    <div className="flex gap-2 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden">
+    <div role="tablist" aria-label="Category filter" className="flex gap-2 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden">
       {tabs.map((cat) => {
         const isActive = current === cat.slug
         const isAll = cat.slug === 'all'
@@ -31,6 +31,8 @@ export function CategoryFilter({ categories }: CategoryFilterProps) {
         return (
           <button
             type="button"
+            role="tab"
+            aria-selected={isActive}
             key={cat.slug}
             onClick={() => select(cat.slug)}
             className={cn(

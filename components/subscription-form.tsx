@@ -11,7 +11,8 @@ import { Label } from '@/components/ui/label'
 import { BillingCycle, Status } from '@prisma/client'
 import type { Category } from '@prisma/client'
 import { format } from 'date-fns'
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useCallback } from 'react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
 
 type FormData = z.infer<typeof subscriptionSchema>
@@ -44,6 +45,7 @@ export function SubscriptionForm({
   const isEdit = !!initialData?.id
   const [pending, startTransition] = useTransition()
   const [actionError, setActionError] = useState<string | null>(null)
+  const [deleteOpen, setDeleteOpen] = useState(false)
 
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(subscriptionSchema) as Resolver<FormData>,
@@ -71,8 +73,9 @@ export function SubscriptionForm({
     })
   }
 
-  function handleDelete() {
-    if (!initialData?.id || !confirm('Delete this subscription?')) return
+  const confirmDelete = useCallback(() => {
+    if (!initialData?.id) return
+    setDeleteOpen(false)
     setActionError(null)
     startTransition(async () => {
       const result = await deleteSubscription(initialData.id!)
@@ -80,7 +83,7 @@ export function SubscriptionForm({
         setActionError(result.error ?? 'Something went wrong')
       }
     })
-  }
+  }, [initialData?.id])
 
   const nextBillingDate = watch('nextBillingDate')
   const currentCycle = watch('billingCycle')
@@ -137,11 +140,13 @@ export function SubscriptionForm({
             <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Billing Cycle
             </Label>
-            <div className="mt-3 grid grid-cols-3 gap-1.5 rounded-xl bg-muted p-1">
+            <div role="radiogroup" aria-label="Billing Cycle" className="mt-3 grid grid-cols-3 gap-1.5 rounded-xl bg-muted p-1">
               {BILLING_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
                   type="button"
+                  role="radio"
+                  aria-checked={currentCycle === opt.value}
                   onClick={() => setValue('billingCycle', opt.value)}
                   className={cn(
                     'rounded-lg px-3 py-2.5 text-center transition-all duration-200',
@@ -164,7 +169,9 @@ export function SubscriptionForm({
               id="nextBillingDate"
               type="date"
               value={nextBillingDate ? format(new Date(nextBillingDate), 'yyyy-MM-dd') : ''}
-              onChange={(e) => setValue('nextBillingDate', new Date(e.target.value))}
+              onChange={(e) => {
+                if (e.target.value) setValue('nextBillingDate', new Date(e.target.value))
+              }}
               className="mt-2 tabular-nums"
             />
           </div>
@@ -205,11 +212,13 @@ export function SubscriptionForm({
             <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Status
             </Label>
-            <div className="mt-3 flex gap-2">
+            <div role="radiogroup" aria-label="Status" className="mt-3 flex gap-2">
               {(Object.entries(STATUS_CONFIG) as [Status, typeof STATUS_CONFIG[Status]][]).map(([value, config]) => (
                 <button
                   key={value}
                   type="button"
+                  role="radio"
+                  aria-checked={currentStatus === value}
                   onClick={() => setValue('status', value)}
                   className={cn(
                     'rounded-full px-4 py-2 text-sm font-medium transition-all duration-200',
@@ -252,7 +261,7 @@ export function SubscriptionForm({
           <Button
             type="button"
             variant="outline"
-            onClick={handleDelete}
+            onClick={() => setDeleteOpen(true)}
             disabled={pending}
             className="rounded-xl border-red-200 px-6 py-6 text-red-600 hover:bg-red-50 hover:text-red-700"
           >
@@ -260,6 +269,25 @@ export function SubscriptionForm({
           </Button>
         )}
       </div>
+
+      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete subscription</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this subscription? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setDeleteOpen(false)} className="rounded-xl">
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={confirmDelete} disabled={pending} className="rounded-xl">
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </form>
   )
 }

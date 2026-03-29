@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { redirect, notFound } from 'next/navigation'
@@ -7,6 +8,19 @@ import { ChevronLeft } from 'lucide-react'
 
 interface Props {
   params: Promise<{ id: string }>
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params
+  const subscription = await prisma.subscription.findUnique({
+    where: { id },
+    select: { name: true },
+  })
+  return {
+    title: subscription
+      ? `${subscription.name} | Subscription Tracker`
+      : 'Edit Subscription | Subscription Tracker',
+  }
 }
 
 export default async function EditSubscriptionPage({ params }: Props) {

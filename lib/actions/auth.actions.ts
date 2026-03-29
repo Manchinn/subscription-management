@@ -2,7 +2,7 @@
 import { z } from 'zod'
 import { prisma } from '@/lib/db'
 import bcrypt from 'bcryptjs'
-import { checkRateLimit } from '@/lib/rate-limit'
+import { isRateLimited, recordFailedAttempt } from '@/lib/rate-limit'
 
 const registerSchema = z
   .object({
@@ -28,7 +28,7 @@ export async function registerUser(data: {
   password: string
   confirmPassword: string
 }): Promise<RegisterResult> {
-  if (process.env.REGISTRATION_ENABLED === 'false') {
+  if (process.env.REGISTRATION_ENABLED !== 'true') {
     return { success: false, error: 'Registration is currently closed.' }
   }
 
@@ -42,8 +42,9 @@ export async function registerUser(data: {
     return { success: false, error: 'Validation failed', fieldErrors }
   }
 
-  const { allowed } = checkRateLimit(`register:${parsed.data.email.toLowerCase()}`)
-  if (!allowed) {
+  const rateLimitKey = `register:${parsed.data.email.toLowerCase()}`
+  const { blocked } = isRateLimited(rateLimitKey)
+  if (blocked) {
     return { success: false, error: 'Too many attempts. Please try again later.' }
   }
 
@@ -53,6 +54,7 @@ export async function registerUser(data: {
     where: { email },
   })
   if (existing) {
+    recordFailedAttempt(rateLimitKey)
     return { success: false, error: 'Registration failed. Please try again or login.' }
   }
 

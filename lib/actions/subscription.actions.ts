@@ -29,8 +29,15 @@ export async function createSubscription(
       return { success: false, error: parsed.error.issues[0]?.message ?? 'Validation failed' }
     }
 
+    const category = await prisma.category.findFirst({
+      where: { id: parsed.data.categoryId, OR: [{ userId: null }, { userId }] },
+    })
+    if (!category) {
+      return { success: false, error: 'Invalid category' }
+    }
+
     await prisma.subscription.create({
-      data: { ...parsed.data, userId, cost: parsed.data.cost },
+      data: { ...parsed.data, userId },
     })
 
     revalidatePath('/dashboard')
@@ -56,9 +63,16 @@ export async function updateSubscription(
       return { success: false, error: parsed.error.issues[0]?.message ?? 'Validation failed' }
     }
 
+    const category = await prisma.category.findFirst({
+      where: { id: parsed.data.categoryId, OR: [{ userId: null }, { userId }] },
+    })
+    if (!category) {
+      return { success: false, error: 'Invalid category' }
+    }
+
     await prisma.subscription.update({
       where: { id, userId },
-      data: { ...parsed.data, cost: parsed.data.cost },
+      data: { ...parsed.data },
     })
 
     revalidatePath('/dashboard')

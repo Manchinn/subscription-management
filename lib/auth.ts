@@ -5,7 +5,7 @@ import { prisma } from '@/lib/db'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 import { authConfig } from '@/auth.config'
-import { checkRateLimit, resetRateLimit } from '@/lib/rate-limit'
+import { isRateLimited, recordFailedAttempt, resetRateLimit } from '@/lib/rate-limit'
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -22,18 +22,25 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (!parsed.success) return null
 
         const email = parsed.data.email.toLowerCase().trim()
-        const { allowed } = checkRateLimit(`login:${email}`)
-        if (!allowed) return null
+        const rateLimitKey = `login:${email}`
+        const { blocked } = isRateLimited(rateLimitKey)
+        if (blocked) return null
 
         const user = await prisma.user.findUnique({
           where: { email },
         })
-        if (!user?.password) return null
+        if (!user?.password) {
+          recordFailedAttempt(rateLimitKey)
+          return null
+        }
 
         const valid = await bcrypt.compare(parsed.data.password, user.password)
-        if (!valid) return null
+        if (!valid) {
+          recordFailedAttempt(rateLimitKey)
+          return null
+        }
 
-        resetRateLimit(`login:${email}`)
+        resetRateLimit(rateLimitKey)
         return { id: user.id, email: user.email, name: user.name }
       },
     }),

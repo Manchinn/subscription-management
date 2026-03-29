@@ -12,7 +12,8 @@ interface SettingsFormProps {
 }
 
 export function SettingsForm({ userName, defaultCurrency }: SettingsFormProps) {
-  const [pending, startTransition] = useTransition()
+  const [profilePending, startProfileTransition] = useTransition()
+  const [pwPending, startPwTransition] = useTransition()
   const [profileMsg, setProfileMsg] = useState('')
   const [pwMsg, setPwMsg] = useState('')
   const passwordFormRef = useRef<HTMLFormElement>(null)
@@ -22,7 +23,7 @@ export function SettingsForm({ userName, defaultCurrency }: SettingsFormProps) {
   function handleProfile(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setProfileMsg('')
-    startTransition(async () => {
+    startProfileTransition(async () => {
       const result = await updateProfile({
         name,
         defaultCurrency: currency,
@@ -39,10 +40,10 @@ export function SettingsForm({ userName, defaultCurrency }: SettingsFormProps) {
     e.preventDefault()
     setPwMsg('')
     const data = new FormData(e.currentTarget)
-    startTransition(async () => {
+    startPwTransition(async () => {
       const result = await updatePassword({
-        currentPassword: data.get('currentPassword') as string,
-        newPassword: data.get('newPassword') as string,
+        currentPassword: String(data.get('currentPassword') ?? ''),
+        newPassword: String(data.get('newPassword') ?? ''),
       })
       if (!result || !result.success) {
         setPwMsg(result?.error ?? 'Failed')
@@ -80,7 +81,7 @@ export function SettingsForm({ userName, defaultCurrency }: SettingsFormProps) {
                 {profileMsg}
               </p>
             )}
-            <Button type="submit" disabled={pending} size="sm" className="rounded-xl hover:shadow-md active:scale-[0.98] transition-transform">
+            <Button type="submit" disabled={profilePending} size="sm" className="rounded-xl hover:shadow-md active:scale-[0.98] transition-transform">
               Save
             </Button>
           </form>
@@ -92,18 +93,18 @@ export function SettingsForm({ userName, defaultCurrency }: SettingsFormProps) {
           <form ref={passwordFormRef} onSubmit={handlePassword} className="space-y-3">
             <div className="space-y-1">
               <Label htmlFor="currentPassword" className="text-xs text-muted-foreground">Current Password</Label>
-              <Input id="currentPassword" name="currentPassword" type="password" />
+              <Input id="currentPassword" name="currentPassword" type="password" required minLength={6} />
             </div>
             <div className="space-y-1">
               <Label htmlFor="newPassword" className="text-xs text-muted-foreground">New Password</Label>
-              <Input id="newPassword" name="newPassword" type="password" />
+              <Input id="newPassword" name="newPassword" type="password" required minLength={6} />
             </div>
             {pwMsg && (
               <p className={`text-sm ${pwMsg === 'Password updated!' ? 'text-emerald-600' : 'text-destructive'}`}>
                 {pwMsg}
               </p>
             )}
-            <Button type="submit" disabled={pending} size="sm" className="rounded-xl hover:shadow-md active:scale-[0.98] transition-transform">
+            <Button type="submit" disabled={pwPending} size="sm" className="rounded-xl hover:shadow-md active:scale-[0.98] transition-transform">
               Update Password
             </Button>
           </form>
