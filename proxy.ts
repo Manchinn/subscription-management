@@ -5,10 +5,17 @@ import { NextResponse } from 'next/server'
 // Use edge-compatible authConfig only (no bcrypt/Prisma)
 const { auth } = NextAuth(authConfig)
 
+const protectedPrefixes = ['/dashboard', '/subscriptions', '/settings']
+
 export default auth((req) => {
-  if (!req.auth) return NextResponse.redirect(new URL('/login', req.url))
+  const isProtected = protectedPrefixes.some((p) =>
+    req.nextUrl.pathname.startsWith(p)
+  )
+  if (isProtected && !req.auth) {
+    return NextResponse.redirect(new URL('/login', req.url))
+  }
 })
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/subscriptions/:path*', '/settings/:path*'],
+  matcher: ['/((?!api|_next|favicon\\.ico|robots\\.txt|sitemap\\.xml).*)'],
 }

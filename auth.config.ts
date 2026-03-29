@@ -4,7 +4,7 @@ import type { NextAuthConfig } from 'next-auth'
 // Used by proxy.ts (Edge runtime) for session checking only
 export const authConfig = {
   pages: { signIn: '/login' },
-  session: { strategy: 'jwt' },
+  session: { strategy: 'jwt', maxAge: 7 * 24 * 60 * 60 },
   callbacks: {
     jwt({ token, user }) {
       if (user) token.id = user.id

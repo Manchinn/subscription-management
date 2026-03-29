@@ -95,11 +95,11 @@ export function SettingsForm({ userName, defaultCurrency }: SettingsFormProps) {
           <form ref={passwordFormRef} onSubmit={handlePassword} className="space-y-3">
             <div className="space-y-1">
               <Label htmlFor="currentPassword" className="text-xs text-muted-foreground">Current Password</Label>
-              <Input id="currentPassword" name="currentPassword" type="password" required minLength={6} />
+              <Input id="currentPassword" name="currentPassword" type="password" required minLength={8} />
             </div>
             <div className="space-y-1">
               <Label htmlFor="newPassword" className="text-xs text-muted-foreground">New Password</Label>
-              <Input id="newPassword" name="newPassword" type="password" required minLength={6} />
+              <Input id="newPassword" name="newPassword" type="password" required minLength={8} />
             </div>
             {pwMsg && (
               <p className={`text-sm ${pwMsg === 'Password updated!' ? 'text-emerald-600' : 'text-destructive'}`}>

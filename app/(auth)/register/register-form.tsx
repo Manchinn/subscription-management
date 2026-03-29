@@ -83,7 +83,7 @@ export function RegisterForm() {
             <Label htmlFor="password" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Password
             </Label>
-            <Input id="password" name="password" type="password" required minLength={6} />
+            <Input id="password" name="password" type="password" required minLength={8} />
             {fieldErrors.password && (
               <p className="text-xs text-red-600">{fieldErrors.password}</p>
             )}
@@ -97,7 +97,7 @@ export function RegisterForm() {
               name="confirmPassword"
               type="password"
               required
-              minLength={6}
+              minLength={8}
             />
             {fieldErrors.confirmPassword && (
               <p className="text-xs text-red-600">

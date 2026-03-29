@@ -8,7 +8,7 @@ const registerSchema = z
   .object({
     name: z.string().trim().min(1, 'Name is required').max(100),
     email: z.string().email('Invalid email address'),
-    password: z.string().min(6, 'Password must be at least 6 characters').max(128),
+    password: z.string().min(8, 'Password must be at least 8 characters').max(128),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -42,7 +42,10 @@ export async function registerUser(data: {
     return { success: false, error: 'Validation failed', fieldErrors }
   }
 
-  const rateLimitKey = `register:${parsed.data.email.trim().toLowerCase()}`
+  const { headers } = await import('next/headers')
+  const headersList = await headers()
+  const ip = headersList.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
+  const rateLimitKey = `register:${ip}`
   const { blocked } = isRateLimited(rateLimitKey)
   if (blocked) {
     return { success: false, error: 'Too many attempts. Please try again later.' }
@@ -53,12 +56,14 @@ export async function registerUser(data: {
   const existing = await prisma.user.findUnique({
     where: { email },
   })
+
+  // Always hash to prevent timing side-channel (user enumeration)
+  const hash = await bcrypt.hash(parsed.data.password, 12)
+
   if (existing) {
     recordFailedAttempt(rateLimitKey)
     return { success: false, error: 'Registration failed. Please try again or login.' }
   }
-
-  const hash = await bcrypt.hash(parsed.data.password, 10)
   await prisma.user.create({
     data: {
       name: parsed.data.name,

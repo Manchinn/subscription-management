@@ -6,6 +6,7 @@ import { prisma } from '@/lib/db'
 import { redirect } from 'next/navigation'
 import { isRedirectError } from 'next/dist/client/components/redirect-error'
 import bcrypt from 'bcryptjs'
+import { isRateLimited, recordFailedAttempt } from '@/lib/rate-limit'
 import type { ActionResult } from './subscription.actions'
 
 const profileSchema = z.object({
@@ -14,8 +15,8 @@ const profileSchema = z.object({
 })
 
 const passwordSchema = z.object({
-  currentPassword: z.string().min(6).max(128),
-  newPassword: z.string().min(6).max(128),
+  currentPassword: z.string().min(8).max(128),
+  newPassword: z.string().min(8).max(128),
 })
 
 export async function updateProfile(
@@ -62,12 +63,19 @@ export async function updatePassword(
       return { success: false, error: 'No password set for this account' }
     }
 
+    const rateLimitKey = `password-change:${session.user.id}`
+    const { blocked } = isRateLimited(rateLimitKey)
+    if (blocked) {
+      return { success: false, error: 'Too many attempts. Please try again later.' }
+    }
+
     const valid = await bcrypt.compare(parsed.data.currentPassword, user.password)
     if (!valid) {
+      recordFailedAttempt(rateLimitKey)
       return { success: false, error: 'Current password is incorrect' }
     }
 
-    const hash = await bcrypt.hash(parsed.data.newPassword, 10)
+    const hash = await bcrypt.hash(parsed.data.newPassword, 12)
     await prisma.user.update({ where: { id: session.user.id }, data: { password: hash } })
 
     return { success: true }
