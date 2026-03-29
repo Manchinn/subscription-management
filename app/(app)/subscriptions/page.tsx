@@ -22,21 +22,26 @@ export default async function SubscriptionsPage({ searchParams }: Props) {
   if (!session?.user?.id) redirect('/login')
   const { category } = await searchParams
 
-  const usedCategories = await prisma.category.findMany({
+  const categoriesQuery = prisma.category.findMany({
     where: {
       subscriptions: { some: { userId: session.user.id } },
     },
     orderBy: { name: 'asc' },
   })
 
-  const subscriptions = await prisma.subscription.findMany({
+  const subscriptionsQuery = prisma.subscription.findMany({
     where: {
       userId: session.user.id,
       ...(category ? { category: { slug: category } } : {}),
     },
     include: { category: true },
     orderBy: { nextBillingDate: 'asc' },
-  }) satisfies SubscriptionWithCategory[]
+  })
+
+  const [usedCategories, subscriptions] = await Promise.all([
+    categoriesQuery,
+    subscriptionsQuery,
+  ])
 
   return (
     <div className="space-y-5">

@@ -72,6 +72,9 @@ model Subscription {
   notes           String?
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
+
+  @@index([userId, nextBillingDate])
+  @@index([userId, status])
 }
 
 model Category {

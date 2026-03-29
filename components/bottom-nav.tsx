@@ -1,12 +1,13 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, List, Settings } from 'lucide-react'
+import { Home, List, BarChart3, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const NAV_ITEMS = [
   { href: '/dashboard',     label: 'Home',          icon: Home },
   { href: '/subscriptions', label: 'Subscriptions', icon: List },
+  { href: '/analytics',     label: 'Analytics',     icon: BarChart3 },
   { href: '/settings',      label: 'Settings',      icon: Settings },
 ]
 

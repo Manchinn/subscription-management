@@ -72,3 +72,69 @@ export function groupTotalsByCurrency(
     yearlyTotal: monthlyTotal * 12,
   }))
 }
+
+export interface CategorySpending {
+  name: string
+  color: string
+  icon: string
+  total: number
+}
+
+export interface SubscriptionCostRank {
+  name: string
+  emoji: string
+  monthlyCost: number
+}
+
+export interface BillingCycleStat {
+  cycle: BillingCycle
+  count: number
+  monthlyTotal: number
+}
+
+export function groupByCategory(
+  subs: { cost: Decimal; billingCycle: BillingCycle; category: { name: string; color: string; icon: string } }[]
+): CategorySpending[] {
+  const map = new Map<string, CategorySpending>()
+  for (const s of subs) {
+    const key = s.category.name
+    const existing = map.get(key)
+    const monthly = calculateMonthlyCost(s.cost, s.billingCycle)
+    if (existing) {
+      existing.total += monthly
+    } else {
+      map.set(key, { name: s.category.name, color: s.category.color, icon: s.category.icon, total: monthly })
+    }
+  }
+  return Array.from(map.values()).sort((a, b) => b.total - a.total)
+}
+
+export function rankByMonthlyCost(
+  subs: { name: string; logoEmoji: string | null; cost: Decimal; billingCycle: BillingCycle; category: { icon: string } }[]
+): SubscriptionCostRank[] {
+  return subs
+    .map((s) => ({
+      name: s.name,
+      emoji: s.logoEmoji ?? s.category.icon,
+      monthlyCost: calculateMonthlyCost(s.cost, s.billingCycle),
+    }))
+    .sort((a, b) => b.monthlyCost - a.monthlyCost)
+    .slice(0, 8)
+}
+
+export function groupByBillingCycle(
+  subs: { cost: Decimal; billingCycle: BillingCycle }[]
+): BillingCycleStat[] {
+  const map = new Map<BillingCycle, BillingCycleStat>()
+  for (const s of subs) {
+    const existing = map.get(s.billingCycle)
+    const monthly = calculateMonthlyCost(s.cost, s.billingCycle)
+    if (existing) {
+      existing.count++
+      existing.monthlyTotal += monthly
+    } else {
+      map.set(s.billingCycle, { cycle: s.billingCycle, count: 1, monthlyTotal: monthly })
+    }
+  }
+  return Array.from(map.values())
+}

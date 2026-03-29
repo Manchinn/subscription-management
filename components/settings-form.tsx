@@ -4,7 +4,6 @@ import { updateProfile, updatePassword } from '@/lib/actions/settings.actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { signOut } from 'next-auth/react'
 
 interface SettingsFormProps {
   userName: string
@@ -112,16 +111,6 @@ export function SettingsForm({ userName, defaultCurrency }: SettingsFormProps) {
           </form>
       </div>
 
-      {/* Sign Out */}
-      <div>
-        <Button
-          variant="outline"
-          className="w-full rounded-xl border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 py-5 font-medium active:scale-[0.98] transition-transform"
-          onClick={() => signOut({ callbackUrl: '/login' })}
-        >
-          Sign Out
-        </Button>
-      </div>
     </div>
   )
 }

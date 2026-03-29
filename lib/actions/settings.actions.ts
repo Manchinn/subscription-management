@@ -58,15 +58,15 @@ export async function updatePassword(
       return { success: false, error: parsed.error.issues[0]?.message ?? 'Validation failed' }
     }
 
-    const user = await prisma.user.findUnique({ where: { id: session.user.id } })
-    if (!user?.password) {
-      return { success: false, error: 'No password set for this account' }
-    }
-
     const rateLimitKey = `password-change:${session.user.id}`
     const { blocked } = isRateLimited(rateLimitKey)
     if (blocked) {
       return { success: false, error: 'Too many attempts. Please try again later.' }
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: session.user.id } })
+    if (!user?.password) {
+      return { success: false, error: 'No password set for this account' }
     }
 
     const valid = await bcrypt.compare(parsed.data.currentPassword, user.password)
