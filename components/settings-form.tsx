@@ -16,15 +16,16 @@ export function SettingsForm({ userName, defaultCurrency }: SettingsFormProps) {
   const [profileMsg, setProfileMsg] = useState('')
   const [pwMsg, setPwMsg] = useState('')
   const passwordFormRef = useRef<HTMLFormElement>(null)
+  const [name, setName] = useState(userName)
+  const [currency, setCurrency] = useState(defaultCurrency)
 
   function handleProfile(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setProfileMsg('')
-    const data = new FormData(e.currentTarget)
     startTransition(async () => {
       const result = await updateProfile({
-        name: data.get('name') as string,
-        defaultCurrency: data.get('defaultCurrency') as string,
+        name,
+        defaultCurrency: currency,
       })
       if (!result || !result.success) {
         setProfileMsg(result?.error ?? 'Failed to save')
@@ -61,14 +62,15 @@ export function SettingsForm({ userName, defaultCurrency }: SettingsFormProps) {
           <form onSubmit={handleProfile} className="space-y-3">
             <div className="space-y-1">
               <Label htmlFor="name">Name</Label>
-              <Input id="name" name="name" defaultValue={userName} className="text-base font-medium" />
+              <Input id="name" name="name" value={name} onChange={(e) => setName(e.target.value)} className="text-base font-medium" />
             </div>
             <div className="space-y-1">
               <Label htmlFor="defaultCurrency">Default Currency</Label>
               <Input
                 id="defaultCurrency"
                 name="defaultCurrency"
-                defaultValue={defaultCurrency}
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value)}
                 placeholder="THB"
                 maxLength={3}
                 className="text-center uppercase text-sm font-semibold"
