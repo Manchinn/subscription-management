@@ -3,7 +3,8 @@ import { useForm } from 'react-hook-form'
 import type { Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { subscriptionSchema, createSubscription, updateSubscription, deleteSubscription } from '@/lib/actions/subscription.actions'
+import { createSubscription, updateSubscription, deleteSubscription } from '@/lib/actions/subscription.actions'
+import { subscriptionSchema } from '@/lib/validations/subscription'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -12,7 +13,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { BillingCycle, Status } from '@prisma/client'
 import type { Category } from '@prisma/client'
 import { format } from 'date-fns'
-import { useTransition } from 'react'
+import { useState, useTransition } from 'react'
 
 type FormData = z.infer<typeof subscriptionSchema>
 
@@ -31,6 +32,7 @@ export function SubscriptionForm({
 }: SubscriptionFormProps) {
   const isEdit = !!initialData?.id
   const [pending, startTransition] = useTransition()
+  const [actionError, setActionError] = useState<string | null>(null)
 
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(subscriptionSchema) as Resolver<FormData>,
@@ -47,19 +49,27 @@ export function SubscriptionForm({
   })
 
   function onSubmit(data: FormData) {
+    setActionError(null)
     startTransition(async () => {
-      if (isEdit && initialData?.id) {
-        await updateSubscription(initialData.id, data)
-      } else {
-        await createSubscription(data)
+      const result = isEdit && initialData?.id
+        ? await updateSubscription(initialData.id, data)
+        : await createSubscription(data)
+      // If redirect happened, this code won't run.
+      // If we get here, it means action returned an error.
+      if (result && !result.success) {
+        setActionError(result.error ?? 'Something went wrong')
       }
     })
   }
 
   function handleDelete() {
     if (!initialData?.id || !confirm('Delete this subscription?')) return
+    setActionError(null)
     startTransition(async () => {
-      await deleteSubscription(initialData.id!)
+      const result = await deleteSubscription(initialData.id!)
+      if (result && !result.success) {
+        setActionError(result.error ?? 'Something went wrong')
+      }
     })
   }
 
@@ -88,7 +98,7 @@ export function SubscriptionForm({
       <div className="space-y-1">
         <Label>Billing Cycle *</Label>
         <Select
-          defaultValue={watch('billingCycle')}
+          value={watch('billingCycle')}
           onValueChange={(v) => { if (v) setValue('billingCycle', v as BillingCycle) }}
         >
           <SelectTrigger>
@@ -115,7 +125,7 @@ export function SubscriptionForm({
       <div className="space-y-1">
         <Label>Category</Label>
         <Select
-          defaultValue={watch('categoryId')}
+          value={watch('categoryId')}
           onValueChange={(v) => { if (v) setValue('categoryId', v) }}
         >
           <SelectTrigger>
@@ -151,7 +161,7 @@ export function SubscriptionForm({
         <div className="space-y-1">
           <Label>Status</Label>
           <Select
-            defaultValue={watch('status')}
+            value={watch('status')}
             onValueChange={(v) => { if (v) setValue('status', v as Status) }}
           >
             <SelectTrigger>
@@ -170,6 +180,10 @@ export function SubscriptionForm({
         <Label htmlFor="notes">Notes</Label>
         <Textarea id="notes" {...register('notes')} rows={2} />
       </div>
+
+      {actionError && (
+        <p className="text-sm text-destructive">{actionError}</p>
+      )}
 
       <div className="flex gap-2 pt-2">
         <Button type="submit" className="flex-1" disabled={pending}>

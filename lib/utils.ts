@@ -42,3 +42,29 @@ export function isUpcoming(date: Date, thresholdDays = 30): boolean {
   const d = daysUntil(date)
   return d >= 0 && d <= thresholdDays
 }
+
+export interface CurrencyTotal {
+  currency: string
+  monthlyTotal: number
+  yearlyTotal: number
+}
+
+/**
+ * Group subscriptions by currency and calculate totals per currency.
+ */
+export function groupTotalsByCurrency(
+  subs: { cost: Decimal; billingCycle: BillingCycle; currency: string }[]
+): CurrencyTotal[] {
+  const map = new Map<string, number>()
+
+  for (const s of subs) {
+    const monthly = calculateMonthlyCost(s.cost, s.billingCycle)
+    map.set(s.currency, (map.get(s.currency) ?? 0) + monthly)
+  }
+
+  return Array.from(map.entries()).map(([currency, monthlyTotal]) => ({
+    currency,
+    monthlyTotal,
+    yearlyTotal: monthlyTotal * 12,
+  }))
+}

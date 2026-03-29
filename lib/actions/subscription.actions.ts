@@ -1,25 +1,16 @@
 'use server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { z } from 'zod'
+import { isRedirectError } from 'next/dist/client/components/redirect-error'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/db'
-import { BillingCycle, Status } from '@prisma/client'
+import { subscriptionSchema, type SubscriptionFormData } from '@/lib/validations/subscription'
 
-export const subscriptionSchema = z.object({
-  name:            z.string().min(1, 'Name is required'),
-  description:     z.string().optional(),
-  cost:            z.coerce.number().positive('Cost must be positive'),
-  currency:        z.string().default('THB'),
-  billingCycle:    z.nativeEnum(BillingCycle),
-  nextBillingDate: z.coerce.date(),
-  categoryId:      z.string().min(1),
-  paymentMethod:   z.string().optional(),
-  logoUrl:         z.string().url().optional().or(z.literal('')),
-  logoEmoji:       z.string().optional(),
-  status:          z.nativeEnum(Status).default('ACTIVE'),
-  notes:           z.string().optional(),
-})
+export type ActionResult<T = undefined> = {
+  success: boolean
+  error?: string
+  data?: T
+}
 
 async function requireUserId(): Promise<string> {
   const session = await auth()
@@ -27,41 +18,75 @@ async function requireUserId(): Promise<string> {
   return session.user.id
 }
 
-export async function createSubscription(data: z.infer<typeof subscriptionSchema>) {
-  const userId = await requireUserId()
-  const parsed = subscriptionSchema.parse(data)
+export async function createSubscription(
+  data: SubscriptionFormData
+): Promise<ActionResult> {
+  try {
+    const userId = await requireUserId()
+    const parsed = subscriptionSchema.safeParse(data)
 
-  await prisma.subscription.create({
-    data: { ...parsed, userId, cost: parsed.cost },
-  })
+    if (!parsed.success) {
+      return { success: false, error: parsed.error.issues[0]?.message ?? 'Validation failed' }
+    }
 
-  revalidatePath('/dashboard')
-  revalidatePath('/subscriptions')
+    await prisma.subscription.create({
+      data: { ...parsed.data, userId, cost: parsed.data.cost },
+    })
+
+    revalidatePath('/dashboard')
+    revalidatePath('/subscriptions')
+  } catch (error) {
+    if (isRedirectError(error)) throw error
+    console.error('createSubscription error:', error)
+    return { success: false, error: 'Something went wrong' }
+  }
+
   redirect('/subscriptions')
 }
 
 export async function updateSubscription(
   id: string,
-  data: z.infer<typeof subscriptionSchema>
-) {
-  const userId = await requireUserId()
-  const parsed = subscriptionSchema.parse(data)
+  data: SubscriptionFormData
+): Promise<ActionResult> {
+  try {
+    const userId = await requireUserId()
+    const parsed = subscriptionSchema.safeParse(data)
 
-  await prisma.subscription.update({
-    where: { id, userId },
-    data: { ...parsed, cost: parsed.cost },
-  })
+    if (!parsed.success) {
+      return { success: false, error: parsed.error.issues[0]?.message ?? 'Validation failed' }
+    }
 
-  revalidatePath('/dashboard')
-  revalidatePath('/subscriptions')
+    await prisma.subscription.update({
+      where: { id, userId },
+      data: { ...parsed.data, cost: parsed.data.cost },
+    })
+
+    revalidatePath('/dashboard')
+    revalidatePath('/subscriptions')
+  } catch (error) {
+    if (isRedirectError(error)) throw error
+    console.error('updateSubscription error:', error)
+    return { success: false, error: 'Something went wrong' }
+  }
+
   redirect('/subscriptions')
 }
 
-export async function deleteSubscription(id: string) {
-  const userId = await requireUserId()
+export async function deleteSubscription(
+  id: string
+): Promise<ActionResult> {
+  try {
+    const userId = await requireUserId()
 
-  await prisma.subscription.delete({ where: { id, userId } })
+    await prisma.subscription.delete({ where: { id, userId } })
 
-  revalidatePath('/dashboard')
-  revalidatePath('/subscriptions')
+    revalidatePath('/dashboard')
+    revalidatePath('/subscriptions')
+  } catch (error) {
+    if (isRedirectError(error)) throw error
+    console.error('deleteSubscription error:', error)
+    return { success: false, error: 'Something went wrong' }
+  }
+
+  redirect('/subscriptions')
 }

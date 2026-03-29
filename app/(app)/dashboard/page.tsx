@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db'
 import { redirect } from 'next/navigation'
 import { Status } from '@prisma/client'
 import {
-  calculateMonthlyCost,
+  groupTotalsByCurrency,
   isAlertingSoon,
   isUpcoming,
   formatCurrency,
@@ -32,13 +32,9 @@ export default async function DashboardPage() {
 
   if (!user) redirect('/login')
 
-  const subs = user.subscriptions as SubscriptionWithCategory[]
+  const subs: SubscriptionWithCategory[] = user.subscriptions
 
-  const monthlyTotal = subs.reduce(
-    (sum, s) => sum + calculateMonthlyCost(s.cost, s.billingCycle),
-    0
-  )
-  const yearlyTotal = monthlyTotal * 12
+  const currencyTotals = groupTotalsByCurrency(subs)
 
   const alertSubs = subs.filter((s) => isAlertingSoon(new Date(s.nextBillingDate)))
   const upcomingSubs = subs.filter((s) => isUpcoming(new Date(s.nextBillingDate)))
@@ -46,10 +42,9 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-4">
       <SummaryCards
-        monthlyTotal={monthlyTotal}
-        yearlyTotal={yearlyTotal}
+        currencyTotals={currencyTotals}
         activeCount={subs.length}
-        currency={user.defaultCurrency}
+        fallbackCurrency={user.defaultCurrency}
       />
 
       <AlertStrip subscriptions={alertSubs} />

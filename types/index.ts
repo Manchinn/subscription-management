@@ -1,7 +1,7 @@
-import type { Subscription, Category, BillingCycle, Status } from '@prisma/client'
+import type { Prisma, BillingCycle, Status } from '@prisma/client'
 
-export type SubscriptionWithCategory = Subscription & {
-  category: Category
-}
+export type SubscriptionWithCategory = Prisma.SubscriptionGetPayload<{
+  include: { category: true }
+}>
 
 export type { BillingCycle, Status }

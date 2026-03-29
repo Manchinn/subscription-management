@@ -6,6 +6,7 @@ import {
   daysUntil,
   isAlertingSoon,
   isUpcoming,
+  groupTotalsByCurrency,
 } from '@/lib/utils'
 import { BillingCycle } from '@prisma/client'
 import { Decimal } from '@prisma/client/runtime/client'
@@ -98,5 +99,104 @@ describe('isUpcoming', () => {
     const boundary = new Date()
     boundary.setDate(boundary.getDate() + 30)
     expect(isUpcoming(boundary)).toBe(true)
+  })
+})
+
+describe('groupTotalsByCurrency', () => {
+  it('returns empty array for no subscriptions', () => {
+    expect(groupTotalsByCurrency([])).toEqual([])
+  })
+
+  it('groups single currency correctly', () => {
+    const subs = [
+      { cost: dec(100), billingCycle: BillingCycle.MONTHLY, currency: 'THB' },
+      { cost: dec(200), billingCycle: BillingCycle.MONTHLY, currency: 'THB' },
+    ]
+    const result = groupTotalsByCurrency(subs)
+    expect(result).toHaveLength(1)
+    expect(result[0].currency).toBe('THB')
+    expect(result[0].monthlyTotal).toBeCloseTo(300)
+    expect(result[0].yearlyTotal).toBeCloseTo(3600)
+  })
+
+  it('groups multiple currencies separately', () => {
+    const subs = [
+      { cost: dec(100), billingCycle: BillingCycle.MONTHLY, currency: 'THB' },
+      { cost: dec(9.99), billingCycle: BillingCycle.MONTHLY, currency: 'USD' },
+      { cost: dec(200), billingCycle: BillingCycle.MONTHLY, currency: 'THB' },
+    ]
+    const result = groupTotalsByCurrency(subs)
+    expect(result).toHaveLength(2)
+
+    const thb = result.find((r) => r.currency === 'THB')
+    const usd = result.find((r) => r.currency === 'USD')
+    expect(thb?.monthlyTotal).toBeCloseTo(300)
+    expect(usd?.monthlyTotal).toBeCloseTo(9.99)
+  })
+
+  it('handles mixed billing cycles within same currency', () => {
+    const subs = [
+      { cost: dec(100), billingCycle: BillingCycle.MONTHLY, currency: 'THB' },
+      { cost: dec(1200), billingCycle: BillingCycle.YEARLY, currency: 'THB' },
+    ]
+    const result = groupTotalsByCurrency(subs)
+    expect(result).toHaveLength(1)
+    expect(result[0].monthlyTotal).toBeCloseTo(200) // 100 + 1200/12
+  })
+
+  it('handles QUARTERLY billing cycle', () => {
+    const subs = [
+      { cost: dec(300), billingCycle: BillingCycle.QUARTERLY, currency: 'USD' },
+    ]
+    const result = groupTotalsByCurrency(subs)
+    expect(result).toHaveLength(1)
+    expect(result[0].currency).toBe('USD')
+    expect(result[0].monthlyTotal).toBeCloseTo(100) // 300/3
+    expect(result[0].yearlyTotal).toBeCloseTo(1200) // 100*12
+  })
+
+  it('groups 3+ different currencies separately', () => {
+    const subs = [
+      { cost: dec(1500), billingCycle: BillingCycle.MONTHLY, currency: 'THB' },
+      { cost: dec(9.99), billingCycle: BillingCycle.MONTHLY, currency: 'USD' },
+      { cost: dec(15), billingCycle: BillingCycle.MONTHLY, currency: 'EUR' },
+    ]
+    const result = groupTotalsByCurrency(subs)
+    expect(result).toHaveLength(3)
+
+    const thb = result.find((r) => r.currency === 'THB')
+    const usd = result.find((r) => r.currency === 'USD')
+    const eur = result.find((r) => r.currency === 'EUR')
+
+    expect(thb?.monthlyTotal).toBeCloseTo(1500)
+    expect(usd?.monthlyTotal).toBeCloseTo(9.99)
+    expect(eur?.monthlyTotal).toBeCloseTo(15)
+  })
+
+  it('calculates correct yearlyTotal for multi-currency scenario', () => {
+    const subs = [
+      { cost: dec(500), billingCycle: BillingCycle.MONTHLY, currency: 'THB' },
+      { cost: dec(1200), billingCycle: BillingCycle.YEARLY, currency: 'THB' },
+      { cost: dec(10), billingCycle: BillingCycle.MONTHLY, currency: 'USD' },
+      { cost: dec(60), billingCycle: BillingCycle.QUARTERLY, currency: 'EUR' },
+    ]
+    const result = groupTotalsByCurrency(subs)
+    expect(result).toHaveLength(3)
+
+    const thb = result.find((r) => r.currency === 'THB')
+    const usd = result.find((r) => r.currency === 'USD')
+    const eur = result.find((r) => r.currency === 'EUR')
+
+    // THB: 500 (monthly) + 1200/12 (yearly→monthly) = 600/mo → 7200/yr
+    expect(thb?.monthlyTotal).toBeCloseTo(600)
+    expect(thb?.yearlyTotal).toBeCloseTo(7200)
+
+    // USD: 10/mo → 120/yr
+    expect(usd?.monthlyTotal).toBeCloseTo(10)
+    expect(usd?.yearlyTotal).toBeCloseTo(120)
+
+    // EUR: 60/3 (quarterly→monthly) = 20/mo → 240/yr
+    expect(eur?.monthlyTotal).toBeCloseTo(20)
+    expect(eur?.yearlyTotal).toBeCloseTo(240)
   })
 })

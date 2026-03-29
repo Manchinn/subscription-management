@@ -31,7 +31,7 @@ export default async function SubscriptionsPage({ searchParams }: Props) {
     },
     include: { category: true },
     orderBy: { nextBillingDate: 'asc' },
-  }) as SubscriptionWithCategory[]
+  }) satisfies SubscriptionWithCategory[]
 
   return (
     <div className="space-y-3">
