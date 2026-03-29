@@ -6,7 +6,6 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function LoginForm() {
   const router = useRouter()
@@ -39,37 +38,55 @@ export default function LoginForm() {
   }
 
   return (
-    <Card className="w-full max-w-sm">
-      <CardHeader>
-        <CardTitle className="text-2xl">Subscription Tracker</CardTitle>
-      </CardHeader>
-      <CardContent>
+    <>
+      <div className="form-section rounded-2xl border bg-card p-6 shadow-sm" style={{ animationDelay: '0ms' }}>
         <form onSubmit={handleSubmit} className="space-y-4">
           {registered && (
-            <p className="text-sm text-green-600">
+            <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-sm text-emerald-700 font-medium">
               Account created! Please login.
-            </p>
+            </div>
           )}
-          <div className="space-y-1">
-            <Label htmlFor="email">Email</Label>
+          {error && (
+            <div className="rounded-xl bg-red-50 border border-red-200 p-3 text-sm text-red-700 font-medium">
+              {error}
+            </div>
+          )}
+          <div className="space-y-1.5">
+            <Label htmlFor="email" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Email
+            </Label>
             <Input id="email" name="email" type="email" required autoFocus />
           </div>
-          <div className="space-y-1">
-            <Label htmlFor="password">Password</Label>
+          <div className="space-y-1.5">
+            <Label htmlFor="password" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Password
+            </Label>
             <Input id="password" name="password" type="password" required />
           </div>
-          {error && <p className="text-sm text-red-500">{error}</p>}
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? 'Signing in...' : 'Sign in'}
+          <Button
+            type="submit"
+            className="w-full rounded-xl py-5 text-base font-semibold shadow-md active:scale-[0.98] transition-transform"
+            disabled={loading}
+          >
+            {loading ? (
+              <span className="flex items-center gap-2">
+                <svg className="spinner h-4 w-4" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeDasharray="32" strokeDashoffset="12" />
+                </svg>
+                Signing in...
+              </span>
+            ) : (
+              'Sign in'
+            )}
           </Button>
-          <p className="text-center text-sm text-muted-foreground">
-            Don&apos;t have an account?{' '}
-            <Link href="/register" className="text-primary underline">
-              Register
-            </Link>
-          </p>
         </form>
-      </CardContent>
-    </Card>
+      </div>
+      <p className="mt-4 text-sm text-center text-muted-foreground">
+        Don&apos;t have an account?{' '}
+        <Link href="/register" className="text-teal-600 hover:text-teal-700 font-medium">
+          Register
+        </Link>
+      </p>
+    </>
   )
 }

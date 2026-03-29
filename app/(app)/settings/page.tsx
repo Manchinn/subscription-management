@@ -15,9 +15,15 @@ export default async function SettingsPage() {
   if (!user) redirect('/login')
 
   return (
-    <SettingsForm
-      userName={user.name ?? ''}
-      defaultCurrency={user.defaultCurrency}
-    />
+    <div>
+      <div className="mb-5">
+        <h2 className="text-lg font-bold tracking-tight">Settings</h2>
+        <p className="text-xs text-muted-foreground">Manage your profile and preferences</p>
+      </div>
+      <SettingsForm
+        userName={user.name ?? ''}
+        defaultCurrency={user.defaultCurrency}
+      />
+    </div>
   )
 }

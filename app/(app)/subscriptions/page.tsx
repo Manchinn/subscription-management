@@ -34,15 +34,19 @@ export default async function SubscriptionsPage({ searchParams }: Props) {
   }) satisfies SubscriptionWithCategory[]
 
   return (
-    <div className="space-y-3">
-      <Suspense>
-        <CategoryFilter categories={usedCategories} />
-      </Suspense>
+    <div className="space-y-5">
+      <div className="form-section" style={{ animationDelay: '0ms' }}>
+        <Suspense>
+          <CategoryFilter categories={usedCategories} />
+        </Suspense>
+      </div>
 
       {subscriptions.length === 0 ? (
-        <p className="py-8 text-center text-sm text-muted-foreground">No subscriptions yet</p>
+        <p className="form-section py-8 text-center text-sm text-muted-foreground" style={{ animationDelay: '100ms' }}>
+          No subscriptions yet
+        </p>
       ) : (
-        <ul className="space-y-2">
+        <ul className="space-y-2 form-section" style={{ animationDelay: '100ms' }}>
           {subscriptions.map((sub) => (
             <li key={sub.id}>
               <SubscriptionCard subscription={sub} />
@@ -53,7 +57,7 @@ export default async function SubscriptionsPage({ searchParams }: Props) {
 
       <Link
         href="/subscriptions/new"
-        className="fixed bottom-20 right-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg active:opacity-90"
+        className="fixed bottom-20 right-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-600 text-white shadow-lg shadow-teal-500/25 hover:shadow-teal-500/40 active:scale-95 transition-all"
       >
         <Plus className="h-6 w-6" />
       </Link>

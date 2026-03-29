@@ -40,43 +40,53 @@ export default async function DashboardPage() {
   const upcomingSubs = subs.filter((s) => isUpcoming(new Date(s.nextBillingDate)))
 
   return (
-    <div className="space-y-4">
-      <SummaryCards
-        currencyTotals={currencyTotals}
-        activeCount={subs.length}
-        fallbackCurrency={user.defaultCurrency}
-      />
+    <div className="space-y-5">
+      <div className="form-section" style={{ animationDelay: '0ms' }}>
+        <SummaryCards
+          currencyTotals={currencyTotals}
+          activeCount={subs.length}
+          fallbackCurrency={user.defaultCurrency}
+        />
+      </div>
 
-      <AlertStrip subscriptions={alertSubs} />
+      <div className="form-section" style={{ animationDelay: '60ms' }}>
+        <AlertStrip subscriptions={alertSubs} />
+      </div>
 
-      <section>
-        <h2 className="mb-2 text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+      <section className="form-section" style={{ animationDelay: '120ms' }}>
+        <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           Upcoming (30 days)
         </h2>
         {upcomingSubs.length === 0 ? (
           <p className="text-sm text-muted-foreground">No upcoming bills</p>
         ) : (
           <ul className="space-y-2">
-            {upcomingSubs.map((sub) => {
+            {upcomingSubs.map((sub, index) => {
               const days = daysUntil(new Date(sub.nextBillingDate))
               const isAlert = isAlertingSoon(new Date(sub.nextBillingDate))
               return (
-                <li key={sub.id}>
+                <li
+                  key={sub.id}
+                  className="form-section"
+                  style={{ animationDelay: `${180 + index * 40}ms` }}
+                >
                   <Link
                     href={`/subscriptions/${sub.id}`}
-                    className="flex items-center justify-between rounded-xl border bg-card p-3 shadow-sm active:bg-accent"
+                    className="flex items-center justify-between rounded-2xl border bg-card p-4 shadow-sm transition-colors active:bg-accent"
                   >
-                    <div className="flex items-center gap-2">
-                      <span className="text-xl">{sub.logoEmoji ?? sub.category.icon}</span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">{sub.logoEmoji ?? sub.category.icon}</span>
                       <div>
-                        <p className="text-sm font-medium">{sub.name}</p>
+                        <p className="text-sm font-semibold">{sub.name}</p>
                         <p className="text-xs text-muted-foreground">
                           {format(new Date(sub.nextBillingDate), 'MMM d')} ·{' '}
                           {days === 0 ? 'today' : `${days} days`}
                         </p>
                       </div>
                     </div>
-                    <span className={`text-sm font-medium ${isAlert ? 'text-orange-600' : ''}`}>
+                    <span
+                      className={`text-sm font-bold ${isAlert ? 'text-orange-600' : 'text-teal-700'}`}
+                    >
                       {formatCurrency(Number(sub.cost), sub.currency)}
                     </span>
                   </Link>

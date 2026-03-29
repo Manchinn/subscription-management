@@ -10,9 +10,9 @@ interface SubscriptionCardProps {
 }
 
 const STATUS_COLORS: Record<Status, string> = {
-  ACTIVE:    'bg-green-100 text-green-700',
-  PAUSED:    'bg-yellow-100 text-yellow-700',
-  CANCELLED: 'bg-gray-100 text-gray-500',
+  ACTIVE:    'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200',
+  PAUSED:    'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
+  CANCELLED: 'bg-gray-100 text-gray-500 ring-1 ring-gray-200',
 }
 
 export function SubscriptionCard({ subscription: sub }: SubscriptionCardProps) {
@@ -22,7 +22,7 @@ export function SubscriptionCard({ subscription: sub }: SubscriptionCardProps) {
   return (
     <Link
       href={`/subscriptions/${sub.id}`}
-      className="flex items-center gap-3 rounded-xl border bg-card p-3 shadow-sm active:bg-accent"
+      className="flex items-center gap-3 rounded-2xl border bg-card p-4 shadow-sm active:scale-[0.98] transition-transform duration-150"
     >
       <SubscriptionLogo
         logoUrl={sub.logoUrl}
@@ -32,14 +32,14 @@ export function SubscriptionCard({ subscription: sub }: SubscriptionCardProps) {
       />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <p className="truncate text-sm font-medium">{sub.name}</p>
+          <p className="truncate text-sm font-semibold">{sub.name}</p>
           <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[sub.status]}`}>
             {sub.status.toLowerCase()}
           </span>
         </div>
         <p className="text-xs text-muted-foreground">
           <span
-            className="inline-block rounded px-1"
+            className="inline-block rounded-md px-1.5 py-0.5"
             style={{ background: sub.category.color + '22', color: sub.category.color }}
           >
             {sub.category.icon} {sub.category.name}
@@ -49,7 +49,7 @@ export function SubscriptionCard({ subscription: sub }: SubscriptionCardProps) {
           {alert && <span className="ml-1 text-orange-500">({days === 0 ? 'today' : `${days}d`})</span>}
         </p>
       </div>
-      <p className={`shrink-0 text-sm font-semibold ${alert ? 'text-orange-600' : ''}`}>
+      <p className={`shrink-0 text-sm font-bold tabular-nums ${alert ? 'text-orange-600 font-bold' : ''}`}>
         {formatCurrency(Number(sub.cost), sub.currency)}
       </p>
     </Link>

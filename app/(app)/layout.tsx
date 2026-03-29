@@ -7,10 +7,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <SessionProvider session={session}>
       <div className="min-h-screen pb-16">
-        <header className="sticky top-0 z-40 border-b bg-background px-4 py-3">
-          <h1 className="text-lg font-semibold">Subscription Tracker</h1>
+        <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur-lg shadow-sm px-4 py-3">
+          <h1 className="flex items-center text-base font-bold tracking-tight">
+            <span className="text-lg mr-2">💳</span>
+            Subscription Tracker
+          </h1>
         </header>
-        <main className="mx-auto max-w-md px-4 py-4">
+        <main className="mx-auto max-w-md px-4 py-5">
           {children}
         </main>
         <BottomNav />

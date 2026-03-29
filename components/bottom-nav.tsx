@@ -13,7 +13,7 @@ const NAV_ITEMS = [
 export function BottomNav() {
   const pathname = usePathname()
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-white">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/50 bg-background/80 backdrop-blur-lg">
       <div className="flex h-16 items-center justify-around max-w-md mx-auto">
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const active = href === '/dashboard'
@@ -24,12 +24,13 @@ export function BottomNav() {
               key={href}
               href={href}
               className={cn(
-                'flex flex-col items-center gap-0.5 px-4 py-2 text-xs',
-                active ? 'text-blue-600' : 'text-gray-500'
+                'relative flex flex-col items-center gap-0.5 px-4 py-2 transition-colors duration-200',
+                active ? 'text-teal-600' : 'text-muted-foreground'
               )}
             >
               <Icon className="h-5 w-5" />
-              <span>{label}</span>
+              <span className="text-[10px] font-medium">{label}</span>
+              {active && <span className="absolute -bottom-1 h-1 w-1 rounded-full bg-teal-600" />}
             </Link>
           )
         })}
