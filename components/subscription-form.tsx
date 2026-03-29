@@ -8,8 +8,6 @@ import { subscriptionSchema } from '@/lib/validations/subscription'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
 import { BillingCycle, Status } from '@prisma/client'
 import type { Category } from '@prisma/client'
 import { format } from 'date-fns'
@@ -91,30 +89,27 @@ export function SubscriptionForm({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-      {/* Section 1: Name — hero field */}
-      <div className="form-section" style={{ animationDelay: '0ms' }}>
-        <div className="rounded-2xl border bg-card p-4 shadow-sm">
-          <Label htmlFor="name" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Service Name
-          </Label>
-          <Input
-            id="name"
-            {...register('name')}
-            placeholder="e.g. Netflix, Spotify, iCloud+"
-            className="mt-2 border-0 bg-transparent px-0 text-lg font-semibold placeholder:text-muted-foreground/40 focus-visible:ring-0"
-          />
-          {errors.name && <p className="mt-1 text-xs text-destructive">{errors.name.message}</p>}
-        </div>
+      {/* Name — hero field */}
+      <div className="rounded-2xl border bg-card p-4 shadow-sm">
+        <Label htmlFor="name" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          Service Name
+        </Label>
+        <Input
+          id="name"
+          {...register('name')}
+          placeholder="e.g. Netflix, Spotify, iCloud+"
+          className="mt-2 border-0 bg-transparent px-0 text-lg font-semibold placeholder:text-muted-foreground/40 focus-visible:ring-0"
+        />
+        {errors.name && <p className="mt-1 text-xs text-destructive">{errors.name.message}</p>}
       </div>
 
-      {/* Section 2: Cost + Currency — teal accent */}
-      <div className="form-section" style={{ animationDelay: '60ms' }}>
-        <div className="rounded-2xl border border-teal-200/60 bg-gradient-to-br from-teal-50 to-cyan-50/50 p-4 shadow-sm">
+      {/* Cost + Currency — teal accent */}
+      <div className="rounded-2xl border border-teal-200/60 bg-gradient-to-br from-teal-50 to-cyan-50/50 p-4 shadow-sm">
           <Label className="text-xs font-semibold uppercase tracking-wider text-teal-700/70">
             Amount
           </Label>
           <div className="mt-2 flex items-baseline gap-2">
-            <div className="relative flex-1">
+            <div className="flex-1">
               <Input
                 id="cost"
                 type="number"
@@ -134,55 +129,49 @@ export function SubscriptionForm({
             </div>
           </div>
           {errors.cost && <p className="mt-1 text-xs text-destructive">{errors.cost.message}</p>}
-        </div>
       </div>
 
-      {/* Section 3: Billing cycle — segmented control */}
-      <div className="form-section" style={{ animationDelay: '120ms' }}>
-        <div className="rounded-2xl border bg-card p-4 shadow-sm">
-          <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Billing Cycle
-          </Label>
-          <div className="mt-3 grid grid-cols-3 gap-1.5 rounded-xl bg-muted p-1">
-            {BILLING_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => setValue('billingCycle', opt.value)}
-                className={cn(
-                  'rounded-lg px-3 py-2.5 text-center transition-all duration-200',
-                  currentCycle === opt.value
-                    ? 'bg-white font-semibold text-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground'
-                )}
-              >
-                <span className="block text-sm">{opt.label}</span>
-                <span className="block text-[10px] text-muted-foreground">{opt.sub}</span>
-              </button>
-            ))}
+      {/* Billing cycle — segmented control + date inline */}
+      <div className="rounded-2xl border bg-card p-4 shadow-sm space-y-4">
+          <div>
+            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Billing Cycle
+            </Label>
+            <div className="mt-3 grid grid-cols-3 gap-1.5 rounded-xl bg-muted p-1">
+              {BILLING_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setValue('billingCycle', opt.value)}
+                  className={cn(
+                    'rounded-lg px-3 py-2.5 text-center transition-all duration-200',
+                    currentCycle === opt.value
+                      ? 'bg-white font-semibold text-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  <span className="block text-sm">{opt.label}</span>
+                  <span className="block text-[10px] text-muted-foreground">{opt.sub}</span>
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+          <div>
+            <Label htmlFor="nextBillingDate" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Next Billing Date
+            </Label>
+            <Input
+              id="nextBillingDate"
+              type="date"
+              value={nextBillingDate ? format(new Date(nextBillingDate), 'yyyy-MM-dd') : ''}
+              onChange={(e) => setValue('nextBillingDate', new Date(e.target.value))}
+              className="mt-2 tabular-nums"
+            />
+          </div>
       </div>
 
-      {/* Section 4: Next Billing Date */}
-      <div className="form-section" style={{ animationDelay: '180ms' }}>
-        <div className="rounded-2xl border bg-card p-4 shadow-sm">
-          <Label htmlFor="nextBillingDate" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Next Billing Date
-          </Label>
-          <Input
-            id="nextBillingDate"
-            type="date"
-            value={nextBillingDate ? format(new Date(nextBillingDate), 'yyyy-MM-dd') : ''}
-            onChange={(e) => setValue('nextBillingDate', new Date(e.target.value))}
-            className="mt-2 tabular-nums"
-          />
-        </div>
-      </div>
-
-      {/* Section 5: Category — emoji pills */}
-      <div className="form-section" style={{ animationDelay: '240ms' }}>
-        <div className="rounded-2xl border bg-card p-4 shadow-sm">
+      {/* Category — emoji pills */}
+      <div className="rounded-2xl border bg-card p-4 shadow-sm">
           <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Category
           </Label>
@@ -208,42 +197,11 @@ export function SubscriptionForm({
               )
             })}
           </div>
-        </div>
       </div>
 
-      {/* Section 6: Optional details — collapsible feel */}
-      <div className="form-section" style={{ animationDelay: '300ms' }}>
-        <div className="rounded-2xl border bg-card p-4 shadow-sm">
-          <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Details
-          </Label>
-          <div className="mt-3 space-y-3">
-            <div className="space-y-1">
-              <Label htmlFor="paymentMethod" className="text-xs text-muted-foreground">Payment Method</Label>
-              <Input id="paymentMethod" {...register('paymentMethod')} placeholder="Credit card, bank transfer..." className="text-sm" />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label htmlFor="logoUrl" className="text-xs text-muted-foreground">Logo URL</Label>
-                <Input id="logoUrl" {...register('logoUrl')} placeholder="https://..." className="text-sm" />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="logoEmoji" className="text-xs text-muted-foreground">Emoji</Label>
-                <Input id="logoEmoji" {...register('logoEmoji')} placeholder="🎬" className="text-center text-sm" />
-              </div>
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="notes" className="text-xs text-muted-foreground">Notes</Label>
-              <Textarea id="notes" {...register('notes')} rows={2} placeholder="Any additional notes..." className="text-sm" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Section 7: Status — edit mode only */}
+      {/* Status — edit mode only */}
       {isEdit && (
-        <div className="form-section" style={{ animationDelay: '360ms' }}>
-          <div className="rounded-2xl border bg-card p-4 shadow-sm">
+        <div className="rounded-2xl border bg-card p-4 shadow-sm">
             <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Status
             </Label>
@@ -264,19 +222,18 @@ export function SubscriptionForm({
                 </button>
               ))}
             </div>
-          </div>
         </div>
       )}
 
-      {/* Error display */}
+      {/* Error */}
       {actionError && (
-        <div className="form-section rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3">
           <p className="text-sm font-medium text-red-700">{actionError}</p>
         </div>
       )}
 
-      {/* Action buttons */}
-      <div className="form-section flex gap-3 pt-2" style={{ animationDelay: isEdit ? '420ms' : '360ms' }}>
+      {/* Actions */}
+      <div className="flex gap-3 pt-2">
         <Button
           type="submit"
           className="flex-1 rounded-xl py-6 text-base font-semibold shadow-md transition-transform active:scale-[0.98]"

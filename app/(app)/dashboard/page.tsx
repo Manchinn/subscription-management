@@ -41,19 +41,15 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-5">
-      <div className="form-section" style={{ animationDelay: '0ms' }}>
-        <SummaryCards
-          currencyTotals={currencyTotals}
-          activeCount={subs.length}
-          fallbackCurrency={user.defaultCurrency}
-        />
-      </div>
+      <SummaryCards
+        currencyTotals={currencyTotals}
+        activeCount={subs.length}
+        fallbackCurrency={user.defaultCurrency}
+      />
 
-      <div className="form-section" style={{ animationDelay: '60ms' }}>
-        <AlertStrip subscriptions={alertSubs} />
-      </div>
+      <AlertStrip subscriptions={alertSubs} />
 
-      <section className="form-section" style={{ animationDelay: '120ms' }}>
+      <section>
         <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           Upcoming (30 days)
         </h2>
@@ -67,8 +63,6 @@ export default async function DashboardPage() {
               return (
                 <li
                   key={sub.id}
-                  className="form-section"
-                  style={{ animationDelay: `${180 + index * 40}ms` }}
                 >
                   <Link
                     href={`/subscriptions/${sub.id}`}

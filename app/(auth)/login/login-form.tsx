@@ -39,7 +39,7 @@ export default function LoginForm() {
 
   return (
     <>
-      <div className="form-section rounded-2xl border bg-card p-6 shadow-sm" style={{ animationDelay: '0ms' }}>
+      <div className="rounded-2xl border bg-card p-6 shadow-sm">
         <form onSubmit={handleSubmit} className="space-y-4">
           {registered && (
             <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-sm text-emerald-700 font-medium">

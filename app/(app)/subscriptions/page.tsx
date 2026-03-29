@@ -35,18 +35,16 @@ export default async function SubscriptionsPage({ searchParams }: Props) {
 
   return (
     <div className="space-y-5">
-      <div className="form-section" style={{ animationDelay: '0ms' }}>
-        <Suspense>
-          <CategoryFilter categories={usedCategories} />
-        </Suspense>
-      </div>
+      <Suspense>
+        <CategoryFilter categories={usedCategories} />
+      </Suspense>
 
       {subscriptions.length === 0 ? (
-        <p className="form-section py-8 text-center text-sm text-muted-foreground" style={{ animationDelay: '100ms' }}>
+        <p className="py-8 text-center text-sm text-muted-foreground">
           No subscriptions yet
         </p>
       ) : (
-        <ul className="space-y-2 form-section" style={{ animationDelay: '100ms' }}>
+        <ul className="space-y-2">
           {subscriptions.map((sub) => (
             <li key={sub.id}>
               <SubscriptionCard subscription={sub} />

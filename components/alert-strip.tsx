@@ -10,11 +10,7 @@ export function AlertStrip({ subscriptions }: AlertStripProps) {
 
   return (
     <div className="rounded-2xl border border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50/30 p-4 shadow-sm">
-      <div className="mb-3 flex items-center gap-2">
-        <span className="relative flex h-2 w-2">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-orange-500" />
-        </span>
+      <div className="mb-3">
         <p className="text-xs font-semibold uppercase tracking-wider text-orange-700">
           Due within 7 days
         </p>

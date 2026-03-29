@@ -56,8 +56,7 @@ export function SettingsForm({ userName, defaultCurrency }: SettingsFormProps) {
   return (
     <div className="space-y-4">
       {/* Profile Card */}
-      <div className="form-section form-section-delay-0">
-        <div className="rounded-2xl border bg-card p-5 shadow-sm">
+      <div className="rounded-2xl border bg-card p-5 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">Profile</p>
           <form onSubmit={handleProfile} className="space-y-3">
             <div className="space-y-1">
@@ -85,12 +84,10 @@ export function SettingsForm({ userName, defaultCurrency }: SettingsFormProps) {
               Save
             </Button>
           </form>
-        </div>
       </div>
 
       {/* Password Card */}
-      <div className="form-section form-section-delay-1">
-        <div className="rounded-2xl border bg-card p-5 shadow-sm">
+      <div className="rounded-2xl border bg-card p-5 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">Change Password</p>
           <form ref={passwordFormRef} onSubmit={handlePassword} className="space-y-3">
             <div className="space-y-1">
@@ -110,11 +107,10 @@ export function SettingsForm({ userName, defaultCurrency }: SettingsFormProps) {
               Update Password
             </Button>
           </form>
-        </div>
       </div>
 
       {/* Sign Out */}
-      <div className="form-section form-section-delay-2">
+      <div>
         <Button
           variant="outline"
           className="w-full rounded-xl border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 py-5 font-medium active:scale-[0.98] transition-transform"

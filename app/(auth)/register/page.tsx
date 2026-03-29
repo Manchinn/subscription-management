@@ -54,7 +54,7 @@ export default function RegisterPage() {
         </p>
       </div>
 
-      <div className="form-section rounded-2xl border bg-card p-6 shadow-sm" style={{ animationDelay: '0ms' }}>
+      <div className="rounded-2xl border bg-card p-6 shadow-sm">
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && !Object.keys(fieldErrors).length && (
             <div className="rounded-xl bg-red-50 border border-red-200 p-3 text-sm text-red-700 font-medium">
