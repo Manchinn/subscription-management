@@ -2,6 +2,7 @@
 import { z } from 'zod'
 import { prisma } from '@/lib/db'
 import bcrypt from 'bcryptjs'
+import { checkRateLimit } from '@/lib/rate-limit'
 
 const registerSchema = z
   .object({
@@ -27,6 +28,10 @@ export async function registerUser(data: {
   password: string
   confirmPassword: string
 }): Promise<RegisterResult> {
+  if (process.env.REGISTRATION_ENABLED === 'false') {
+    return { success: false, error: 'Registration is currently closed.' }
+  }
+
   const parsed = registerSchema.safeParse(data)
   if (!parsed.success) {
     const fieldErrors: Record<string, string> = {}
@@ -37,13 +42,18 @@ export async function registerUser(data: {
     return { success: false, error: 'Validation failed', fieldErrors }
   }
 
+  const { allowed } = checkRateLimit(`register:${parsed.data.email.toLowerCase()}`)
+  if (!allowed) {
+    return { success: false, error: 'Too many attempts. Please try again later.' }
+  }
+
   const email = parsed.data.email.trim().toLowerCase()
 
   const existing = await prisma.user.findUnique({
     where: { email },
   })
   if (existing) {
-    return { success: false, error: 'Email already exists' }
+    return { success: false, error: 'Registration failed. Please try again or login.' }
   }
 
   const hash = await bcrypt.hash(parsed.data.password, 10)
