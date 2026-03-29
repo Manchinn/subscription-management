@@ -31,3 +31,5 @@ tsconfig.tsbuildinfo
 
 # Prisma generated (default location in node_modules)
 # lib/generated/ — only if using custom output
+
+.vercel
